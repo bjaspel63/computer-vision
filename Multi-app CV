@@ -1,0 +1,75 @@
+import cv2
+import numpy as np
+import tkinter as tk
+from PIL import Image, ImageTk
+
+# Initialize global variables
+current_filter = "Original"
+
+# Filter function
+def apply_filter(frame):
+    global current_filter
+    if current_filter == "Original":
+        return frame
+    elif current_filter == "Grayscale":
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+    elif current_filter == "Blurred":
+        return cv2.GaussianBlur(frame, (15, 15), 0)
+    elif current_filter == "Edges":
+        edges = cv2.Canny(frame, 100, 200)
+        return cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+    return frame
+
+# Update video frame
+def update_frame():
+    ret, frame = cap.read()
+    if ret:
+        frame = cv2.resize(frame, (400, 300))
+        filtered = apply_filter(frame)
+        rgb_frame = cv2.cvtColor(filtered, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(rgb_frame)
+        imgtk = ImageTk.PhotoImage(image=img)
+        video_label.imgtk = imgtk
+        video_label.configure(image=imgtk)
+    window.after(10, update_frame)
+
+# Button callbacks
+def set_filter(filter_name):
+    global current_filter
+    current_filter = filter_name
+
+# Close safely
+def on_closing():
+    cap.release()
+    window.destroy()
+
+# Setup OpenCV capture
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    raise Exception("❌ Could not access webcam")
+
+# Create main GUI window
+window = tk.Tk()
+window.title("Computer Vision Filter App")
+
+# Video display label
+video_label = tk.Label(window)
+video_label.pack()
+
+# Button frame
+btn_frame = tk.Frame(window)
+btn_frame.pack(pady=10)
+
+# Filter Buttons
+filters = ["Original", "Grayscale", "Blurred", "Edges"]
+for f in filters:
+    btn = tk.Button(btn_frame, text=f, width=10, command=lambda f=f: set_filter(f))
+    btn.pack(side=tk.LEFT, padx=5)
+
+# Start updating video
+update_frame()
+
+# Handle close
+window.protocol("WM_DELETE_WINDOW", on_closing)
+window.mainloop()
