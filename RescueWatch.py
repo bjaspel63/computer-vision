@@ -104,7 +104,7 @@ last_frame = None
 # start voice command listener in a background
 threading.Thread(target=listen_for_voice_command, daemon=True).start()
 
-print("✅ Emergency Alert System Started. Press 'q' to quit.")
+print("✅ RescueWatch Started. Press 'q' to quit.")
 
 while True:
     ret, frame = cap.read()  # Capture frame from webcam
